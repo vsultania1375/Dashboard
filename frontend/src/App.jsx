@@ -3,6 +3,7 @@ import DataUploadPage from "./DataUploadPage";
 import { ExportModule } from "./ExportModule";
 import AnalyticsPage from "./AnalyticsPage";
 import ReportPage from "./ReportPage";
+import VisualizationPage from "./VisualizationPage";
 
 // ─── CONFIG ───────────────────────────────────────────
 const API = "/api";
@@ -424,6 +425,7 @@ export default function App() {
             {[
               { id: "dashboard", label: "📊 Dashboard" },
               { id: "analytics", label: "📈 Analytics" },
+              { id: "visualizations", label: "📉 Visualizations" },
               { id: "reports", label: "📄 Reports" },
               { id: "performance", label: "👥 Performance" },
               { id: "offline", label: "🔴 Offline Sites" },
@@ -461,6 +463,7 @@ export default function App() {
             <div className="p-6">
               {currentPage === "dashboard" && <DashboardPage />}
               {currentPage === "analytics" && <AnalyticsPage />}
+              {currentPage === "visualizations" && <VisualizationPage />}
               {currentPage === "reports" && <ReportPage />}
               {currentPage === "performance" && <PerformancePage />}
               {currentPage === "offline" && <OfflineDistributionPage />}
