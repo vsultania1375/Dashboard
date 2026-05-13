@@ -1,5 +1,6 @@
 import { useState, useEffect, createContext, useContext } from "react";
 import DataUploadPage from "./DataUploadPage";
+import { ExportModule } from "./ExportModule";
 
 // ─── CONFIG ───────────────────────────────────────────
 const API = "/api";
@@ -423,6 +424,7 @@ export default function App() {
               { id: "performance", label: "📈 Performance" },
               { id: "offline", label: "🔴 Offline Sites" },
               { id: "upload", label: "📤 Data Upload" },
+              { id: "export", label: "📥 Export Data" },
             ].map((item) => (
               <button
                 key={item.id}
@@ -457,6 +459,7 @@ export default function App() {
             {currentPage === "performance" && <PerformancePage />}
             {currentPage === "offline" && <OfflineDistributionPage />}
             {currentPage === "upload" && <DataUploadPage />}
+            {currentPage === "export" && <ExportModule />}
           </div>
         </div>
       </div>
