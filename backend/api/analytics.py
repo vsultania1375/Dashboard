@@ -8,6 +8,7 @@ from fastapi.responses import StreamingResponse, FileResponse
 from datetime import datetime, timedelta
 import json
 from report_generator import ReportGenerator
+from insights_engine import InsightsEngine
 
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
@@ -389,5 +390,135 @@ async def export_json(period: str = "weekly"):
             media_type="application/json",
             headers={"Content-Disposition": f"attachment; filename={filename}"}
         )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ─── AI INSIGHTS ENDPOINTS ───────────────────────────────────
+
+@router.get("/intelligence/anomalies")
+async def detect_anomalies():
+    """Detect anomalies in data using AI-powered analysis"""
+    try:
+        engine = InsightsEngine()
+        
+        # Simulate data for demo
+        attendance_data = [
+            {"engineer_name": f"Engineer {i}", "attendance_percent": 85 + (i % 10)} 
+            for i in range(20)
+        ]
+        attendance_data[5]["attendance_percent"] = 20  # Anomaly
+        
+        visit_data = [
+            {"visits": 600 + (i * 10)} for i in range(14)
+        ]
+        visit_data[-1]["visits"] = 1200  # Spike
+        
+        engineer_data = [
+            {"engineer_name": f"Engineer {i}", "completion_rate": 75 + (i % 15)}
+            for i in range(20)
+        ]
+        engineer_data[3]["completion_rate"] = 45  # Underperformer
+        
+        site_data = [
+            {"site_id": f"SITE{i:03d}", "site_name": f"Site {i}", "days_offline": 10 + (i * 5)}
+            for i in range(15)
+        ]
+        site_data[8]["days_offline"] = 95  # Issue
+        
+        # Run analysis
+        attendance_anomalies = engine.analyze_attendance_patterns(attendance_data)
+        visit_anomalies = engine.detect_visit_spikes(visit_data)
+        underperformers = engine.identify_underperformers(engineer_data)
+        site_issues = engine.detect_site_issues(site_data)
+        
+        all_anomalies = attendance_anomalies + visit_anomalies + underperformers + site_issues
+        
+        return {
+            "total_anomalies": len(all_anomalies),
+            "by_severity": {
+                "high": len([a for a in all_anomalies if a.get("severity") == "high"]),
+                "medium": len([a for a in all_anomalies if a.get("severity") == "medium"]),
+                "low": len([a for a in all_anomalies if a.get("severity") == "low"]),
+            },
+            "anomalies": all_anomalies[:10],  # Top 10
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/intelligence/insights")
+async def generate_insights():
+    """Generate AI-powered intelligent insights"""
+    try:
+        engine = InsightsEngine()
+        
+        # Prepare demo data
+        data = {
+            "metrics": {
+                "completion_rate": 92.5,
+                "avg_attendance": 88.3,
+                "offline_sites": 1200,
+                "total_visits": 18543,
+            },
+            "trends": [
+                {"date": (datetime.now() - timedelta(days=i)).strftime("%Y-%m-%d"), 
+                 "visits": 600 + (i * 5)}
+                for i in range(30, 0, -1)
+            ],
+            "engineers": [],
+            "sites": [],
+        }
+        
+        insights = engine.generate_intelligent_insights(data)
+        health = engine.score_health_metrics(data)
+        
+        return {
+            "insights": insights,
+            "health_score": health,
+            "timestamp": datetime.now().isoformat(),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/intelligence/staffing-forecast")
+async def forecast_staffing():
+    """Predict future staffing requirements"""
+    try:
+        engine = InsightsEngine()
+        
+        visit_trends = [
+            {"date": (datetime.now() - timedelta(days=i)).strftime("%Y-%m-%d"),
+             "visits": 1800 + (i * 10)}
+            for i in range(30, 0, -1)
+        ]
+        
+        forecast = engine.predict_staffing_needs(visit_trends)
+        
+        return {
+            "forecast": forecast,
+            "timestamp": datetime.now().isoformat(),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/intelligence/health-score")
+async def get_health_score():
+    """Get overall system health score"""
+    try:
+        engine = InsightsEngine()
+        
+        data = {
+            "metrics": {
+                "completion_rate": 92.5,
+                "avg_attendance": 88.3,
+                "offline_sites": 1200,
+            }
+        }
+        
+        health = engine.score_health_metrics(data)
+        
+        return {
+            "health": health,
+            "last_updated": datetime.now().isoformat(),
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
