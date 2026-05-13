@@ -4,6 +4,9 @@ import { ExportModule } from "./ExportModule";
 import AnalyticsPage from "./AnalyticsPage";
 import ReportPage from "./ReportPage";
 import VisualizationPage from "./VisualizationPage";
+import AdminDashboard from "./AdminDashboard";
+import ManagerDashboard from "./ManagerDashboard";
+import EngineerDashboard from "./EngineerDashboard";
 
 // ─── CONFIG ───────────────────────────────────────────
 const API = "/api";
@@ -422,8 +425,26 @@ export default function App() {
           </div>
 
           <nav className="flex-1 overflow-y-auto py-4">
+            {/* Common menu items for all roles */}
             {[
               { id: "dashboard", label: "📊 Dashboard" },
+            ].map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setCurrentPage(item.id)}
+                className={`w-full text-left px-4 py-2 text-sm transition ${
+                  currentPage === item.id
+                    ? "bg-blue-700 font-semibold"
+                    : "text-blue-200 hover:bg-blue-800"
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+
+            {/* Admin-only menu items */}
+            {auth.role === "admin" && [
+              { id: "admin-dashboard", label: "👑 Admin Console" },
               { id: "analytics", label: "📈 Analytics" },
               { id: "visualizations", label: "📉 Visualizations" },
               { id: "reports", label: "📄 Reports" },
@@ -431,6 +452,45 @@ export default function App() {
               { id: "offline", label: "🔴 Offline Sites" },
               { id: "upload", label: "📤 Data Upload" },
               { id: "export", label: "📥 Export Data" },
+            ].map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setCurrentPage(item.id)}
+                className={`w-full text-left px-4 py-2 text-sm transition ${
+                  currentPage === item.id
+                    ? "bg-blue-700 font-semibold"
+                    : "text-blue-200 hover:bg-blue-800"
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+
+            {/* Manager-only menu items */}
+            {auth.role === "manager" && [
+              { id: "manager-dashboard", label: "🎯 Manager Console" },
+              { id: "analytics", label: "📈 Analytics" },
+              { id: "reports", label: "📄 Reports" },
+              { id: "performance", label: "👥 Performance" },
+              { id: "offline", label: "🔴 Offline Sites" },
+            ].map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setCurrentPage(item.id)}
+                className={`w-full text-left px-4 py-2 text-sm transition ${
+                  currentPage === item.id
+                    ? "bg-blue-700 font-semibold"
+                    : "text-blue-200 hover:bg-blue-800"
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+
+            {/* Engineer-only menu items */}
+            {auth.role === "engineer" && [
+              { id: "engineer-dashboard", label: "🚀 My Dashboard" },
+              { id: "performance", label: "📊 My Performance" },
             ].map((item) => (
               <button
                 key={item.id}
@@ -462,6 +522,9 @@ export default function App() {
           <div className="flex-1 overflow-auto">
             <div className="p-6">
               {currentPage === "dashboard" && <DashboardPage />}
+              {currentPage === "admin-dashboard" && <AdminDashboard />}
+              {currentPage === "manager-dashboard" && <ManagerDashboard />}
+              {currentPage === "engineer-dashboard" && <EngineerDashboard />}
               {currentPage === "analytics" && <AnalyticsPage />}
               {currentPage === "visualizations" && <VisualizationPage />}
               {currentPage === "reports" && <ReportPage />}
