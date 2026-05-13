@@ -2,6 +2,7 @@ import { useState, useEffect, createContext, useContext } from "react";
 import DataUploadPage from "./DataUploadPage";
 import { ExportModule } from "./ExportModule";
 import AnalyticsPage from "./AnalyticsPage";
+import ReportPage from "./ReportPage";
 
 // ─── CONFIG ───────────────────────────────────────────
 const API = "/api";
@@ -423,6 +424,7 @@ export default function App() {
             {[
               { id: "dashboard", label: "📊 Dashboard" },
               { id: "analytics", label: "📈 Analytics" },
+              { id: "reports", label: "📄 Reports" },
               { id: "performance", label: "👥 Performance" },
               { id: "offline", label: "🔴 Offline Sites" },
               { id: "upload", label: "📤 Data Upload" },
@@ -454,17 +456,18 @@ export default function App() {
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 overflow-auto">
-          <div className="p-6">
-            {currentPage === "dashboard" && <DashboardPage />}
-            {currentPage === "analytics" && <AnalyticsPage />}
-            {currentPage === "performance" && <PerformancePage />}
-            {currentPage === "offline" && <OfflineDistributionPage />}
-            {currentPage === "upload" && <DataUploadPage />}
-            {currentPage === "export" && <ExportModule />}
+          {/* Main Content */}
+          <div className="flex-1 overflow-auto">
+            <div className="p-6">
+              {currentPage === "dashboard" && <DashboardPage />}
+              {currentPage === "analytics" && <AnalyticsPage />}
+              {currentPage === "reports" && <ReportPage />}
+              {currentPage === "performance" && <PerformancePage />}
+              {currentPage === "offline" && <OfflineDistributionPage />}
+              {currentPage === "upload" && <DataUploadPage />}
+              {currentPage === "export" && <ExportModule />}
+            </div>
           </div>
-        </div>
       </div>
     </AuthCtx.Provider>
   );

@@ -4,8 +4,10 @@ Provides analytics, reporting, and insights for the dashboard
 """
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse, FileResponse
 from datetime import datetime, timedelta
 import json
+from report_generator import ReportGenerator
 
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
@@ -334,5 +336,58 @@ async def compare_periods(period1: str = "current", period2: str = "previous"):
             },
         }
         return comparison
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ─── REPORT EXPORT ENDPOINTS ───────────────────────────────────
+
+@router.get("/export/excel")
+async def export_excel(period: str = "weekly"):
+    """Export analytics report as Excel file"""
+    try:
+        generator = ReportGenerator()
+        generator.set_report_data(period=period)
+        excel_data = generator.generate_excel()
+        
+        filename = f"report-{period}-{datetime.now().strftime('%Y%m%d')}.xlsx"
+        return StreamingResponse(
+            iter([excel_data]),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/export/pdf")
+async def export_pdf(period: str = "weekly"):
+    """Export analytics report as PDF file"""
+    try:
+        generator = ReportGenerator()
+        generator.set_report_data(period=period)
+        pdf_data = generator.generate_pdf()
+        
+        filename = f"report-{period}-{datetime.now().strftime('%Y%m%d')}.pdf"
+        return StreamingResponse(
+            iter([pdf_data]),
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/export/json")
+async def export_json(period: str = "weekly"):
+    """Export analytics report as JSON file"""
+    try:
+        generator = ReportGenerator()
+        generator.set_report_data(period=period)
+        json_data = generator.generate_json()
+        
+        filename = f"report-{period}-{datetime.now().strftime('%Y%m%d')}.json"
+        return StreamingResponse(
+            iter([json_data.encode()]),
+            media_type="application/json",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
