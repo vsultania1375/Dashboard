@@ -1,4 +1,5 @@
 import { useState, useEffect, createContext, useContext } from "react";
+import DataUploadPage from "./DataUploadPage";
 
 // ─── CONFIG ───────────────────────────────────────────
 const API = "/api";
@@ -421,6 +422,7 @@ export default function App() {
               { id: "dashboard", label: "📊 Dashboard" },
               { id: "performance", label: "📈 Performance" },
               { id: "offline", label: "🔴 Offline Sites" },
+              { id: "upload", label: "📤 Data Upload" },
             ].map((item) => (
               <button
                 key={item.id}
@@ -454,6 +456,7 @@ export default function App() {
             {currentPage === "dashboard" && <DashboardPage />}
             {currentPage === "performance" && <PerformancePage />}
             {currentPage === "offline" && <OfflineDistributionPage />}
+            {currentPage === "upload" && <DataUploadPage />}
           </div>
         </div>
       </div>
