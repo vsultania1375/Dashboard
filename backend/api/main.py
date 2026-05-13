@@ -11,6 +11,7 @@ import io
 
 from database import init_db, SessionLocal, get_db, DatabaseOps, Engineer, OfflineSite, Visit, Attendance
 from upload_handler import UploadProcessor
+from analytics import router as analytics_router
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -26,6 +27,9 @@ app.add_middleware(CORSMiddleware,
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
+# Include analytics router
+app.include_router(analytics_router)
 
 # Upload history
 upload_history = {}

@@ -1,6 +1,7 @@
 import { useState, useEffect, createContext, useContext } from "react";
 import DataUploadPage from "./DataUploadPage";
 import { ExportModule } from "./ExportModule";
+import AnalyticsPage from "./AnalyticsPage";
 
 // ─── CONFIG ───────────────────────────────────────────
 const API = "/api";
@@ -421,7 +422,8 @@ export default function App() {
           <nav className="flex-1 overflow-y-auto py-4">
             {[
               { id: "dashboard", label: "📊 Dashboard" },
-              { id: "performance", label: "📈 Performance" },
+              { id: "analytics", label: "📈 Analytics" },
+              { id: "performance", label: "👥 Performance" },
               { id: "offline", label: "🔴 Offline Sites" },
               { id: "upload", label: "📤 Data Upload" },
               { id: "export", label: "📥 Export Data" },
@@ -456,6 +458,7 @@ export default function App() {
         <div className="flex-1 overflow-auto">
           <div className="p-6">
             {currentPage === "dashboard" && <DashboardPage />}
+            {currentPage === "analytics" && <AnalyticsPage />}
             {currentPage === "performance" && <PerformancePage />}
             {currentPage === "offline" && <OfflineDistributionPage />}
             {currentPage === "upload" && <DataUploadPage />}
