@@ -180,7 +180,7 @@ async def upload_history_list(limit: int = 20):
     }
 
 
-@router.post("/template/{data_type}")
+@router.get("/template/{data_type}")
 async def download_template(data_type: str):
     """
     Get template for a data type (shows expected columns and format)

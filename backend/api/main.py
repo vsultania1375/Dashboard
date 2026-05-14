@@ -348,7 +348,7 @@ async def upload_history_list(limit: int = 20):
         ]
     }
 
-@app.post("/api/upload/template/{data_type}")
+@app.get("/api/upload/template/{data_type}")
 async def get_template(data_type: str):
     """Get data template"""
     templates = {
