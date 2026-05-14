@@ -280,10 +280,13 @@ async def preview_upload(file: UploadFile = File(...), rows: int = 10, sheet: st
         content = await file.read()
         
         if file.filename.endswith('.xlsx') or file.filename.endswith('.xls'):
-            # If sheet is specified, use it; otherwise use default (first sheet)
-            df = pd.read_excel(io.BytesIO(content), sheet_name=sheet)
+            # When sheet is None, default to first sheet (not all sheets)
+            if sheet is None:
+                df = pd.read_excel(io.BytesIO(content), sheet_name=0, header=0)
+            else:
+                df = pd.read_excel(io.BytesIO(content), sheet_name=sheet, header=0)
         elif file.filename.endswith('.csv'):
-            df = pd.read_csv(io.BytesIO(content))
+            df = pd.read_csv(io.BytesIO(content), header=0)
         else:
             raise ValueError("Unsupported format")
         

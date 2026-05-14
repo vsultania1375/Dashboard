@@ -298,12 +298,12 @@ class UploadProcessor:
                 # When sheet_name=None, pd.read_excel returns dict of all sheets
                 # We want to default to first sheet instead
                 if sheet_name is None:
-                    df = pd.read_excel(io.BytesIO(file_content), sheet_name=0)
+                    df = pd.read_excel(io.BytesIO(file_content), sheet_name=0, header=0)
                 else:
-                    df = pd.read_excel(io.BytesIO(file_content), sheet_name=sheet_name)
+                    df = pd.read_excel(io.BytesIO(file_content), sheet_name=sheet_name, header=0)
                 file_type = "Excel"
             elif filename.endswith('.csv'):
-                df = pd.read_csv(io.BytesIO(file_content))
+                df = pd.read_csv(io.BytesIO(file_content), header=0)
                 file_type = "CSV"
             else:
                 raise ValueError("Unsupported file format. Use .xlsx, .xls, or .csv")
