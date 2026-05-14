@@ -290,9 +290,26 @@ async def preview_upload(file: UploadFile = File(...), rows: int = 10, sheet: st
         else:
             raise ValueError("Unsupported format")
         
-        # Drop index column if it's named 'Unnamed: 0'
-        if 'Unnamed: 0' in df.columns:
-            df = df.drop('Unnamed: 0', axis=1)
+        # Drop all columns that are 'Unnamed' - these are usually index columns
+        unnamed_cols = [col for col in df.columns if 'Unnamed' in str(col)]
+        if unnamed_cols:
+            df = df.drop(columns=unnamed_cols)
+        
+        # If first row looks like duplicate headers, skip it
+        if len(df) > 0:
+            first_row_values = df.iloc[0].values
+            col_names = list(df.columns)
+            # Check if first row values match column names
+            if len(first_row_values) == len(col_names):
+                all_match = True
+                for i in range(len(col_names)):
+                    val_str = str(first_row_values[i]).lower().strip()
+                    col_str = str(col_names[i]).lower().strip()
+                    if val_str != col_str:
+                        all_match = False
+                        break
+                if all_match:
+                    df = df.iloc[1:].reset_index(drop=True)
         
         # Convert dataframe to records, replacing NaN/inf with None
         preview_records = []
