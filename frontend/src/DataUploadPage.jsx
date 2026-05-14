@@ -53,11 +53,15 @@ export default function DataUploadPage() {
       if (!response.ok) {
         let errorMsg = `Server error: ${response.status}`;
         try {
-          const errorData = await response.json();
-          errorMsg = errorData.detail || errorMsg;
+          const text = await response.text();
+          try {
+            const errorData = JSON.parse(text);
+            errorMsg = errorData.detail || errorMsg;
+          } catch {
+            errorMsg = text ? text.substring(0, 100) : errorMsg;
+          }
         } catch (e) {
-          const errorText = await response.text();
-          errorMsg = errorText ? errorText.substring(0, 100) : errorMsg;
+          errorMsg += " (Unable to read error details)";
         }
         throw new Error(errorMsg);
       }
@@ -90,11 +94,15 @@ export default function DataUploadPage() {
       if (!response.ok) {
         let errorMsg = `Server error: ${response.status}`;
         try {
-          const errorData = await response.json();
-          errorMsg = errorData.detail || errorMsg;
+          const text = await response.text();
+          try {
+            const errorData = JSON.parse(text);
+            errorMsg = errorData.detail || errorMsg;
+          } catch {
+            errorMsg = text ? text.substring(0, 100) : errorMsg;
+          }
         } catch (e) {
-          const errorText = await response.text();
-          errorMsg = errorText ? errorText.substring(0, 100) : errorMsg;
+          errorMsg += " (Unable to read error details)";
         }
         throw new Error(errorMsg);
       }
@@ -123,14 +131,25 @@ export default function DataUploadPage() {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Server error: ${response.status} - ${errorText}`);
+        let errorMsg = `Server error: ${response.status}`;
+        try {
+          const text = await response.text();
+          try {
+            const errorData = JSON.parse(text);
+            errorMsg = errorData.detail || errorMsg;
+          } catch {
+            errorMsg = text ? text.substring(0, 100) : errorMsg;
+          }
+        } catch (e) {
+          errorMsg += " (Unable to read error details)";
+        }
+        throw new Error(errorMsg);
       }
 
       const data = await response.json();
 
-      if (data.status === "loading") {
-        alert(`✅ Data confirmed! Loading ${data.rows_to_load} records to database...`);
+      if (data.status === "loading" || data.status === "completed") {
+        alert(`✅ Data confirmed! Loading ${data.rows_to_load || "data"} to database...`);
         setSelectedFile(null);
         setPreview(null);
         setValidation(null);
