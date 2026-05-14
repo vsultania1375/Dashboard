@@ -50,6 +50,18 @@ export default function DataUploadPage() {
         body: formData,
       });
 
+      if (!response.ok) {
+        let errorMsg = `Server error: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.detail || errorMsg;
+        } catch (e) {
+          const errorText = await response.text();
+          errorMsg = errorText ? errorText.substring(0, 100) : errorMsg;
+        }
+        throw new Error(errorMsg);
+      }
+
       const data = await response.json();
       setPreview(data);
     } catch (error) {
@@ -75,6 +87,18 @@ export default function DataUploadPage() {
         body: formData,
       });
 
+      if (!response.ok) {
+        let errorMsg = `Server error: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.detail || errorMsg;
+        } catch (e) {
+          const errorText = await response.text();
+          errorMsg = errorText ? errorText.substring(0, 100) : errorMsg;
+        }
+        throw new Error(errorMsg);
+      }
+
       const data = await response.json();
       setValidation(data);
       setUploadId(data.upload_id);
@@ -98,6 +122,11 @@ export default function DataUploadPage() {
         method: "POST",
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Server error: ${response.status} - ${errorText}`);
+      }
+
       const data = await response.json();
 
       if (data.status === "loading") {
@@ -118,6 +147,9 @@ export default function DataUploadPage() {
   const loadHistory = async () => {
     try {
       const response = await fetch("/api/upload/history?limit=10");
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
       const data = await response.json();
       setHistory(data.recent_uploads || []);
     } catch (error) {
@@ -128,6 +160,9 @@ export default function DataUploadPage() {
   const downloadTemplate = async (type) => {
     try {
       const response = await fetch(`/api/upload/template/${type}`);
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
       const template = await response.json();
 
       // Create CSV content

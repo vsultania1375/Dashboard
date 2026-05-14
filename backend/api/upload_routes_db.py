@@ -61,13 +61,19 @@ async def preview_upload(file: UploadFile = File(...), rows: int = 10):
         
         content = await file.read()
         
-        # Read file
-        if file.filename.endswith('.xlsx') or file.filename.endswith('.xls'):
-            df = pd.read_excel(io.BytesIO(content))
-        elif file.filename.endswith('.csv'):
-            df = pd.read_csv(io.BytesIO(content))
-        else:
-            raise ValueError("Unsupported file format")
+        if not content:
+            raise ValueError("File is empty")
+        
+        # Read file based on extension
+        try:
+            if file.filename.endswith('.xlsx') or file.filename.endswith('.xls'):
+                df = pd.read_excel(io.BytesIO(content))
+            elif file.filename.endswith('.csv'):
+                df = pd.read_csv(io.BytesIO(content))
+            else:
+                raise ValueError(f"Unsupported file format: {file.filename}. Supported formats: .xlsx, .xls, .csv")
+        except Exception as e:
+            raise ValueError(f"Failed to read file: {str(e)}")
         
         return {
             "filename": file.filename,
@@ -78,8 +84,10 @@ async def preview_upload(file: UploadFile = File(...), rows: int = 10):
             "dtypes": {col: str(dtype) for col, dtype in df.dtypes.items()}
         }
     
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Preview failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
 @router.post("/confirm")
