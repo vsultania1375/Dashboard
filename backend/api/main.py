@@ -247,6 +247,8 @@ async def preview_upload(file: UploadFile = File(...), rows: int = 10):
     """Preview file data"""
     try:
         import pandas as pd
+        import numpy as np
+        
         content = await file.read()
         
         if file.filename.endswith('.xlsx') or file.filename.endswith('.xls'):
@@ -256,12 +258,30 @@ async def preview_upload(file: UploadFile = File(...), rows: int = 10):
         else:
             raise ValueError("Unsupported format")
         
+        # Drop index column if it's named 'Unnamed: 0'
+        if 'Unnamed: 0' in df.columns:
+            df = df.drop('Unnamed: 0', axis=1)
+        
+        # Convert dataframe to records, replacing NaN/inf with None
+        preview_records = []
+        for _, row in df.head(rows).iterrows():
+            record = {}
+            for col, val in row.items():
+                # Convert NaN, inf, and other non-serializable values to None
+                if pd.isna(val):
+                    record[col] = None
+                elif isinstance(val, (np.integer, np.floating)):
+                    record[col] = float(val) if np.isfinite(val) else None
+                else:
+                    record[col] = val
+            preview_records.append(record)
+        
         return {
             "filename": file.filename,
             "total_rows": len(df),
             "total_columns": len(df.columns),
             "columns": list(df.columns),
-            "preview_data": df.head(rows).to_dict('records'),
+            "preview_data": preview_records,
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Preview failed: {str(e)}")
