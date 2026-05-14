@@ -12,6 +12,8 @@ export default function DataUploadPage() {
   const [validation, setValidation] = useState(null);
   const [uploadId, setUploadId] = useState(null);
   const [history, setHistory] = useState([]);
+  const [availableSheets, setAvailableSheets] = useState([]);
+  const [selectedSheet, setSelectedSheet] = useState(null);
 
   const dataTypes = [
     { id: "engineers", label: "👥 Engineers", description: "Engineer profiles and details" },
@@ -21,7 +23,7 @@ export default function DataUploadPage() {
     { id: "tickets", label: "🎫 Tickets", description: "Support tickets" },
   ];
 
-  const handleFileSelect = (e) => {
+  const handleFileSelect = async (e) => {
     const file = e.target.files[0];
     if (file) {
       if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".csv") && !file.name.endsWith(".xls")) {
@@ -31,6 +33,37 @@ export default function DataUploadPage() {
       setSelectedFile(file);
       setPreview(null);
       setValidation(null);
+      setSelectedSheet(null);
+      setAvailableSheets([]);
+
+      // If Excel file, list available sheets
+      if (file.name.endsWith(".xlsx") || file.name.endsWith(".xls")) {
+        await listSheets(file);
+      }
+    }
+  };
+
+  const listSheets = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("/api/upload/sheets", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        console.error("Failed to list sheets:", text);
+        return;
+      }
+
+      const data = await response.json();
+      setAvailableSheets(data.sheets || []);
+      setSelectedSheet(data.default_sheet || null);
+    } catch (error) {
+      console.error("Error listing sheets:", error);
     }
   };
 
@@ -45,7 +78,9 @@ export default function DataUploadPage() {
     formData.append("file", selectedFile);
 
     try {
-      const response = await fetch("/api/upload/preview?rows=10", {
+      // Add sheet parameter if selected
+      const sheetParam = selectedSheet ? `&sheet=${encodeURIComponent(selectedSheet)}` : "";
+      const response = await fetch(`/api/upload/preview?rows=10${sheetParam}`, {
         method: "POST",
         body: formData,
       });
@@ -86,7 +121,9 @@ export default function DataUploadPage() {
     formData.append("file", selectedFile);
 
     try {
-      const response = await fetch("/api/upload/validate", {
+      // Add sheet parameter if selected
+      const sheetParam = selectedSheet ? `?sheet=${encodeURIComponent(selectedSheet)}` : "";
+      const response = await fetch(`/api/upload/validate${sheetParam}`, {
         method: "POST",
         body: formData,
       });
@@ -275,6 +312,30 @@ export default function DataUploadPage() {
             {selectedFile && (
               <div className="mt-4 p-3 bg-blue-50 rounded border border-blue-200">
                 ✓ Selected: <strong>{selectedFile.name}</strong> ({(selectedFile.size / 1024).toFixed(1)} KB)
+              </div>
+            )}
+
+            {/* Sheet Selector for Excel Files */}
+            {selectedFile && availableSheets.length > 0 && (
+              <div className="mt-4 p-4 bg-yellow-50 rounded border border-yellow-200">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  📄 Select Sheet:
+                </label>
+                <select
+                  value={selectedSheet || ""}
+                  onChange={(e) => {
+                    setSelectedSheet(e.target.value);
+                    setPreview(null);
+                    setValidation(null);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded bg-white"
+                >
+                  {availableSheets.map((sheet) => (
+                    <option key={sheet} value={sheet}>
+                      {sheet}
+                    </option>
+                  ))}
+                </select>
               </div>
             )}
           </div>

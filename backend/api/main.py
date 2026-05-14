@@ -217,11 +217,11 @@ async def smart_insights():
 
 # ─── UPLOAD ENDPOINTS ──────────────────────────────────
 @app.post("/api/upload/validate")
-async def validate_upload(file: UploadFile = File(...)):
+async def validate_upload(file: UploadFile = File(...), sheet: str = None):
     """Validate uploaded file"""
     try:
         content = await file.read()
-        result = UploadProcessor.process_upload(content, file.filename)
+        result = UploadProcessor.process_upload(content, file.filename, sheet_name=sheet)
         
         upload_id = datetime.now().isoformat()
         upload_history[upload_id] = result
@@ -230,6 +230,7 @@ async def validate_upload(file: UploadFile = File(...)):
             "upload_id": upload_id,
             "status": result['status'],
             "filename": result['filename'],
+            "sheet_name": sheet,
             "data_type": result.get('data_type'),
             "rows_uploaded": result['rows_uploaded'],
             "rows_valid": result['rows_valid'],
@@ -242,9 +243,36 @@ async def validate_upload(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Validation failed: {str(e)}")
 
+@app.post("/api/upload/sheets")
+async def list_sheets(file: UploadFile = File(...)):
+    """List all sheets in an Excel file"""
+    try:
+        import pandas as pd
+        
+        content = await file.read()
+        
+        if file.filename.endswith('.xlsx') or file.filename.endswith('.xls'):
+            xls = pd.ExcelFile(io.BytesIO(content))
+            sheets = xls.sheet_names
+            return {
+                "filename": file.filename,
+                "sheets": sheets,
+                "default_sheet": sheets[0] if sheets else None
+            }
+        else:
+            return {
+                "filename": file.filename,
+                "sheets": [],
+                "default_sheet": None,
+                "message": "CSV files don't have multiple sheets"
+            }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to read sheets: {str(e)}")
+
+
 @app.post("/api/upload/preview")
-async def preview_upload(file: UploadFile = File(...), rows: int = 10):
-    """Preview file data"""
+async def preview_upload(file: UploadFile = File(...), rows: int = 10, sheet: str = None):
+    """Preview file data from specified sheet"""
     try:
         import pandas as pd
         import numpy as np
@@ -252,7 +280,8 @@ async def preview_upload(file: UploadFile = File(...), rows: int = 10):
         content = await file.read()
         
         if file.filename.endswith('.xlsx') or file.filename.endswith('.xls'):
-            df = pd.read_excel(io.BytesIO(content))
+            # If sheet is specified, use it; otherwise use default (first sheet)
+            df = pd.read_excel(io.BytesIO(content), sheet_name=sheet)
         elif file.filename.endswith('.csv'):
             df = pd.read_csv(io.BytesIO(content))
         else:
@@ -278,6 +307,7 @@ async def preview_upload(file: UploadFile = File(...), rows: int = 10):
         
         return {
             "filename": file.filename,
+            "sheet_name": sheet,
             "total_rows": len(df),
             "total_columns": len(df.columns),
             "columns": list(df.columns),

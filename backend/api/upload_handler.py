@@ -257,11 +257,11 @@ class UploadProcessor:
     """Main processor for file uploads"""
     
     @staticmethod
-    def read_file(file_content: bytes, filename: str) -> Tuple[pd.DataFrame, str]:
+    def read_file(file_content: bytes, filename: str, sheet_name: str = None) -> Tuple[pd.DataFrame, str]:
         """Read Excel or CSV file"""
         try:
             if filename.endswith('.xlsx') or filename.endswith('.xls'):
-                df = pd.read_excel(io.BytesIO(file_content))
+                df = pd.read_excel(io.BytesIO(file_content), sheet_name=sheet_name)
                 file_type = "Excel"
             elif filename.endswith('.csv'):
                 df = pd.read_csv(io.BytesIO(file_content))
@@ -301,7 +301,7 @@ class UploadProcessor:
         raise ValueError("Could not determine data type from columns")
     
     @staticmethod
-    def process_upload(file_content: bytes, filename: str) -> Dict:
+    def process_upload(file_content: bytes, filename: str, sheet_name: str = None) -> Dict:
         """Process complete upload with validation and transformation"""
         result = {
             'status': 'error',
@@ -318,7 +318,7 @@ class UploadProcessor:
         
         try:
             # Read file
-            df, file_type = UploadProcessor.read_file(file_content, filename)
+            df, file_type = UploadProcessor.read_file(file_content, filename, sheet_name)
             result['file_type'] = file_type
             result['rows_uploaded'] = len(df)
             
