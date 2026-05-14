@@ -1,0 +1,7 @@
+site_id,site_name,state,segment,last_online_date,offline_duration_days,priority
+SITE001,Bank A,Maharashtra,PSU,2026-01-01,100,HIGH
+SITE002,Bank B,Karnataka,PSU,2026-01-15,85,HIGH
+,,,,,,
+SITE004,Bank D,Tamil Nadu,PSU,2026-02-01,70,HIGH
+,,,,,,
+SITE006,Bank F,Delhi,PSU,2026-02-15,60,MEDIUM

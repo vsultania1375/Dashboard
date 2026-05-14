@@ -257,11 +257,50 @@ class UploadProcessor:
     """Main processor for file uploads"""
     
     @staticmethod
+    def remove_blank_rows(df: pd.DataFrame) -> Tuple[pd.DataFrame, int]:
+        """Remove completely blank rows (all NaN or all whitespace)
+        Returns: (cleaned_dataframe, number_of_rows_removed)
+        """
+        initial_count = len(df)
+        
+        # Mark rows as blank if:
+        # 1. All values are NaN, OR
+        # 2. All non-NaN values are just whitespace strings
+        def is_blank_row(row):
+            # Convert all values to string and strip whitespace
+            str_values = [str(v).strip() if pd.notna(v) else None for v in row]
+            # Remove None values (which were NaN)
+            str_values = [v for v in str_values if v is not None]
+            
+            # If no non-NaN values, it's blank
+            if len(str_values) == 0:
+                return True
+            
+            # If all non-NaN values are empty strings, it's blank
+            if all(v == '' for v in str_values):
+                return True
+            
+            return False
+        
+        # Apply the blank row check
+        blank_mask = df.apply(is_blank_row, axis=1)
+        df = df[~blank_mask]
+        df = df.reset_index(drop=True)  # Reset index after dropping rows
+        
+        rows_removed = initial_count - len(df)
+        return df, rows_removed
+    
+    @staticmethod
     def read_file(file_content: bytes, filename: str, sheet_name: str = None) -> Tuple[pd.DataFrame, str]:
         """Read Excel or CSV file"""
         try:
             if filename.endswith('.xlsx') or filename.endswith('.xls'):
-                df = pd.read_excel(io.BytesIO(file_content), sheet_name=sheet_name)
+                # When sheet_name=None, pd.read_excel returns dict of all sheets
+                # We want to default to first sheet instead
+                if sheet_name is None:
+                    df = pd.read_excel(io.BytesIO(file_content), sheet_name=0)
+                else:
+                    df = pd.read_excel(io.BytesIO(file_content), sheet_name=sheet_name)
                 file_type = "Excel"
             elif filename.endswith('.csv'):
                 df = pd.read_csv(io.BytesIO(file_content))
@@ -321,6 +360,11 @@ class UploadProcessor:
             df, file_type = UploadProcessor.read_file(file_content, filename, sheet_name)
             result['file_type'] = file_type
             result['rows_uploaded'] = len(df)
+            
+            # Remove blank rows (data cleaning)
+            df, blank_rows_removed = UploadProcessor.remove_blank_rows(df)
+            if blank_rows_removed > 0:
+                result['warnings'].append(f"Removed {blank_rows_removed} blank/empty rows from data")
             
             # Detect data type
             data_type = UploadProcessor.detect_data_type(df)
