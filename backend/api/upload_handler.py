@@ -308,26 +308,20 @@ class UploadProcessor:
             else:
                 raise ValueError("Unsupported file format. Use .xlsx, .xls, or .csv")
             
-            # Drop all columns that are 'Unnamed' - these are usually index columns or formatting artifacts
-            unnamed_cols = [col for col in df.columns if 'Unnamed' in str(col)]
-            if unnamed_cols:
-                df = df.drop(columns=unnamed_cols)
+            # Drop index column if present (Unnamed: 0 is common when Excel has an index)
+            if 'Unnamed: 0' in df.columns:
+                df = df.drop('Unnamed: 0', axis=1)
             
-            # If first row looks like duplicate headers (values match column names), skip it
+            # Skip first row if it contains duplicate headers
             if len(df) > 0:
                 first_row_values = df.iloc[0].values
                 col_names = list(df.columns)
-                # Check if first row values match column names (indicates duplicate header)
-                if len(first_row_values) == len(col_names):
-                    all_match = True
-                    for i in range(len(col_names)):
-                        val_str = str(first_row_values[i]).lower().strip()
-                        col_str = str(col_names[i]).lower().strip()
-                        if val_str != col_str:
-                            all_match = False
-                            break
-                    if all_match:
-                        df = df.iloc[1:].reset_index(drop=True)
+                # Check if all first row values match column names (duplicate header row)
+                if len(first_row_values) == len(col_names) and all(
+                    str(first_row_values[i]).lower().strip() == str(col_names[i]).lower().strip()
+                    for i in range(len(col_names))
+                ):
+                    df = df.iloc[1:].reset_index(drop=True)
             
             return df, file_type
         except Exception as e:
